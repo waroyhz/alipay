@@ -92,6 +92,7 @@ func (this *AliPay) doRequest(method string, param AliPayParam, results interfac
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded;charset=utf-8")
 
+	this.Client.Timeout = time.Second*5
 	resp, err := this.Client.Do(req)
 	if resp != nil {
 		defer resp.Body.Close()
