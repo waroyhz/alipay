@@ -352,6 +352,17 @@ type RoyaltyParameter struct {
 	Desc             string  `json:"desc"`              // 可选 分账描述
 }
 
+type AliPayTradeOrderSettleResponse struct {
+	Body struct {
+		Code    string `json:"code"`
+		Msg     string `json:"msg"`
+		SubCode string `json:"sub_code"`
+		SubMsg  string `json:"sub_msg"`
+		TradeNo string `json:"trade_no"`
+	} `json:"alipay_trade_order_settle_response"`
+	Sign string `json:"sign"`
+}
+
 //////////////////////////////////////////////////////////////////////////////////
 // https://docs.open.alipay.com/api_1/alipay.trade.create/
 type AliPayTradeCreate struct {
@@ -443,7 +454,7 @@ type AliPayTradePay struct {
 	TradePay
 	AppAuthToken string `json:"-"` // 可选
 
-	Scene    string `json:"scene"`     // 必须 支付场景 条码支付，取值：bar_code 声波支付，取值：wave_code	bar_code,wave_code
+	Scene    string `json:"scene"`     // 必须 支付场景 条码支付，取值：bar_code 声波支付，取值：wave_code, bar_code, wave_code
 	AuthCode string `json:"auth_code"` // 必须 支付授权码
 
 	BuyerId            string             `json:"buyer_id"` // 可选 家的支付宝用户id，如果为空，会从传入了码值信息中获取买家ID
@@ -630,4 +641,45 @@ func (this *AliPayTradeCancelResponse) IsSuccess() bool {
 		return true
 	}
 	return false
+}
+
+//////////////////////////////////////////////////////////////////////////////////
+// https://docs.open.alipay.com/api_1/alipay.trade.orderinfo.sync/
+type AliPayTradeOrderInfoSync struct {
+	AppAuthToken string `json:"-"`              // 可选
+	OutRequestNo string `json:"out_request_no"` // 必选 标识一笔交易多次请求，同一笔交易多次信息同步时需要保证唯一
+	BizType      string `json:"biz_type"`       // 必选 交易信息同步对应的业务类型，具体值与支付宝约定；信用授权场景下传CREDIT_AUTH
+	TradeNo      string `json:"trade_no"`       // 可选 支付宝交易号，和商户订单号不能同时为空
+	OrderBizInfo string `json:"order_biz_info"` // 可选 商户传入同步信息，具体值要和支付宝约定；用于芝麻信用租车、单次授权等信息同步场景，格式为json格式
+}
+
+func (this AliPayTradeOrderInfoSync) APIName() string {
+	return "alipay.trade.orderinfo.sync"
+}
+
+func (this AliPayTradeOrderInfoSync) Params() map[string]string {
+	var m = make(map[string]string)
+	m["app_auth_token"] = this.AppAuthToken
+	return m
+}
+
+func (this AliPayTradeOrderInfoSync) ExtJSONParamName() string {
+	return "biz_content"
+}
+
+func (this AliPayTradeOrderInfoSync) ExtJSONParamValue() string {
+	return marshal(this)
+}
+
+type AliPayTradeOrderInfoSyncResponse struct {
+	Body struct {
+		Code        string `json:"code"`
+		Msg         string `json:"msg"`
+		SubCode     string `json:"sub_code"`
+		SubMsg      string `json:"sub_msg"`
+		TradeNo     string `json:"trade_no"`
+		OutTradeNo  string `json:"out_trade_no"`
+		BuyerUserId string `json:"buyer_user_id"`
+	} `json:"alipay_trade_orderinfo_sync_response"`
+	Sign string `json:"sign"`
 }
